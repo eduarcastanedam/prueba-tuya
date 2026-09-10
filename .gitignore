@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+ejercicio3_rachas/db/*.db
+ejercicio4_html_base64/sample_html/**/*_embedded.html
