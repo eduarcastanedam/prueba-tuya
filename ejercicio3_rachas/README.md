@@ -3,10 +3,18 @@
 ## Cómo replicar
 
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
+# Windows:
+.venv\Scripts\Activate.ps1
+# macOS/Linux:
+source .venv/bin/activate
+
+python -m pip install -r requirements.txt
 python load_data.py                                  # crea db/rachas.db desde ../Rachas.xlsx
 python run_query.py --fecha-base 2024-12-31 --n 3     # ejemplo de ejecución
 ```
+
+> Si `pip` no se reconoce como comando en PowerShell, usa `python -m pip install -r requirements.txt` (o `py -m pip ...`).
 
 - `schema.sql`: tablas `historia` y `retiros`.
 - `load_data.py`: lee `Rachas.xlsx` (hojas `historia` y `retiros`) y carga SQLite.
