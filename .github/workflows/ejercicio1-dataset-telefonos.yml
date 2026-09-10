@@ -1,0 +1,57 @@
+name: Ejercicio 1 - Dataset Telefonos CI/CD
+
+on:
+  pull_request:
+    paths:
+      - "ejercicio1_dataset_telefonos/**"
+  push:
+    branches: [main]
+    paths:
+      - "ejercicio1_dataset_telefonos/**"
+
+defaults:
+  run:
+    working-directory: ejercicio1_dataset_telefonos
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ -v
+
+  # Simula el paso de despliegue/promoción: aplica el esquema y corre el
+  # pipeline completo (extract -> validate -> load) contra una base efímera,
+  # como verificación de que "lo que se mergea a main" realmente corre de
+  # punta a punta antes de tocar un ambiente real.
+  build-and-load:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tuya
+          POSTGRES_PASSWORD: tuya
+          POSTGRES_DB: tuya
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tuya"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://tuya:tuya@localhost:5432/tuya
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python -m pipeline.cargar --csv data/fuente_ejemplo.csv --fuente crm --id-lote ci-${{ github.sha }}
